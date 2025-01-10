@@ -24,7 +24,7 @@ class ArticleController extends AbstractController
         $this->isDebug = $isDebug;
     }
 
-    #[Route('/', name: 'app_article')]
+    #[Route('/', name: 'app_homepage')]
     public function homepage(ArticleRepository $repository): Response
     {
         $articles = $repository->findAllPublishedOrderedByNewest();
