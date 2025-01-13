@@ -5,10 +5,13 @@ namespace App\Entity;
 use App\Repository\CommentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
 class Comment
 {
+    use TimestampableEntity;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -68,12 +71,12 @@ class Comment
         return $this;
     }
 
-    public function isDeleted(): ?bool
+    public function getIsDeleted(): ?bool
     {
         return $this->isDeleted;
     }
 
-    public function setDeleted(bool $isDeleted): static
+    public function setIsDeleted(bool $isDeleted): static
     {
         $this->isDeleted = $isDeleted;
 

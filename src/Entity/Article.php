@@ -3,14 +3,20 @@
 namespace App\Entity;
 
 use App\Repository\ArticleRepository;
+use App\Repository\CommentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Selectable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation\Slug;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article
 {
+    use TimestampableEntity;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -19,7 +25,8 @@ class Article
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[ORM\Column(length: 100, unique: true)]
+    #[ORM\Column(length: 255, unique: true)]
+    #[Slug(fields: ['title'])]
     private ?string $slug = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -37,15 +44,16 @@ class Article
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageFilename = null;
 
-    /**
-     * @var Collection<int, Comment>
-     */
+    // /**
+    //  * @var Collection<int, Comment>
+    //  */
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'article')]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $comments;
 
-    /**
-     * @var Collection<int, Tag>
-     */
+    // /**
+    //  * @var Collection<int, Tag>
+    //  */
     #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'articles')]
     private Collection $tags;
 
@@ -151,12 +159,25 @@ class Article
         return $this;
     }
 
-    /**
-     * @return Collection<int, Comment>
-     */
+    public function getImagePath()
+    {
+        return 'images/' . $this->getImageFilename();
+    }
+
     public function getComments(): Collection
     {
         return $this->comments;
+    }
+
+    public function getNonDeletedComments(): Collection
+    {
+        if (!$this->comments instanceof Selectable) {
+            throw new \LogicException('La collection de commentaires ne supporte pas la méthode "matching()".');
+        }
+
+        $criteria = CommentRepository::createNonDeletedCriteria();
+
+        return $this->comments->matching($criteria);
     }
 
     public function addComment(Comment $comment): static

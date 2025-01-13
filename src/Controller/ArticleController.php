@@ -4,9 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Repository\ArticleRepository;
-use App\Service\SlackClient;
+// use App\Service\SlackClient;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,15 +35,9 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/news/{slug}", name="article_show")
-     */
-    public function show(Article $article)
+    #[Route('/news/{slug}', name: 'article_show')]
+    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Article $article): Response
     {
-        // if ($article->getSlug() === 'khaaaaaan') {
-        //     $slack->sendMessage('Kahn', 'Ah, Kirk, my old friend...');
-        // }
-
         return $this->render('article/show.html.twig', [
             'article' => $article,
         ]);
