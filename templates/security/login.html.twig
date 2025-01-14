@@ -16,9 +16,11 @@
 
 		<h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
 		<label for="inputEmail" class="sr-only">Email address</label>
-		<input type="email" id="inputEmail" name="email" class="form-control" required>
+		<input type="email" value="{{last_username}}" id="inputEmail" name="email" class="form-control" required>
 		<label for="inputPassword">Password</label>
 		<input type="password" id="inputPassword" name="password" class="form-control" required>
+		<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
 		<div class="checkbox mb-3">
 			<label>
 				<input type="checkbox" name="_remember_me">
