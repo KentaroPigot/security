@@ -18,6 +18,8 @@ security:
       provider: app_user_provider
       custom_authenticators:
         - App\Security\LoginFormAuthenticator
+        - App\Security\ApiTokenAuthenticator
+        entry_point: App\Security\LoginFormAuthenticator
       # form_login:
       #   login_path: app_login
       #   check_path: app_login
@@ -27,21 +29,31 @@ security:
       remember_me:
         secret: "%kernel.secret%" # Cette valeur doit être la même que la clé secrète de votre application
         lifetime: 31536000 # Durée du cookie "remember me" en secondes (par exemple, 1 an)
-        # path: / # Le cookie sera accessible sur tout le site
+
     # where to redirect after logout
     # target: app_any_route
+    # https://symfony.com/doc/current/security/impersonating_user.html
+    switch_user: true
+
+  role_hierarchy:
+    ROLE_ADMIN:
+      [ROLE_ADMIN_COMMENT, ROLE_ADMIN_ARTICLE, ROLE_ALLOWED_TO_SWITCH]
+      # ROLE_EDITOR: ROLE_ADMIN_ARTICLE
 
     # activate different ways to authenticate
     # https://symfony.com/doc/current/security.html#the-firewall
 
-    # https://symfony.com/doc/current/security/impersonating_user.html
-    # switch_user: true
-
   # Easy way to control access for large sections of your site
   # Note: Only the *first* access control that matches will be used
   access_control:
-    # - { path: ^/admin, roles: ROLE_ADMIN }
-    # - { path: ^/profile, roles: ROLE_USER }
+    # - { path: ^/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY } # Tout le monde est anonymous ! Donc tout le monde à accès
+    # - { path: ^/, roles: IS_AUTHENTICATED_FULLY } # Toutes les pages auront besoin d'être login
+    # - { path: ^/, roles: IS_AUTHENTICATED_REMEMBERED } # Fonctionne si on a un remember me cookie, même si on est pas login
+    #  En gros c'est differents niveaux de sécurité. IS_AUTHENTICATED_ANONYMOUSLY < IS_AUTHENTICATED_REMEMBERED < IS_AUTHENTICATED_FULLY
+
+  # - { path: ^/account, roles: IS_AUTHENTICATED_FULLY } # Dès que le user est login
+  # - { path: ^/admin, roles: ROLE_ADMIN }
+  # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:
   security:

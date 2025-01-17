@@ -2,7 +2,9 @@
 
 namespace App\Factory;
 
+use App\Entity\ApiToken;
 use App\Entity\User;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -10,38 +12,43 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class UserFactory extends PersistentProxyObjectFactory
 {
-    /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
-     */
-    public function __construct() {}
+    private UserPasswordHasherInterface $passwordHasher;
+
+    public function __construct(UserPasswordHasherInterface $passwordHasher)
+    {
+        $this->passwordHasher = $passwordHasher;
+    }
 
     public static function class(): string
     {
         return User::class;
     }
 
-    /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
-     */
     protected function defaults(): array|callable
     {
         return [
             'email' => self::faker()->email(),
             'firstName' => self::faker()->firstName(),
+            'password' => "Test1234",
+            'roles' => self::faker()->randomElement([['ROLE_ADMIN']]),
+            'twitterUsername' => self::faker()->userName(),
         ];
     }
 
-    /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
-     */
     protected function initialize(): static
     {
         return $this
-            // ->afterInstantiate(function(User $user): void {})
-        ;
+            ->afterInstantiate(function (User $user): void {
+                // Hachage du mot de passe
+                $password = $user->getPassword();
+                $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
+                $user->setPassword($hashedPassword);
+
+                // Création des ApiToken associés
+                for ($i = 0; $i < rand(1, 3); $i++) {
+                    $apiToken = new ApiToken($user);
+                    $user->addApiToken($apiToken);
+                }
+            });
     }
 }
